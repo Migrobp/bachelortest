@@ -1,0 +1,9 @@
+I = imread("cyan.png");
+imshow(I);
+
+targetSize = [250 250];
+rect = centerCropWindow2d(size(I), targetSize);
+croppedImg = imcrop(I, rect);
+imshow(croppedImg);
+
+
