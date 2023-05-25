@@ -8,17 +8,14 @@ public class ProjectorScreen extends PApplet {
   }
 
   public void settings() {
-    fullScreen(P2D, 2);
-    smooth();
+    fullScreen(2);
+    noSmooth();
   }
-
-  //public void setParent(PIScreen parent) {
-  //this.parent = parent;
-  //}
 
   public void setup() {
     windowTitle("Projection");
     background(0);
+    noLoop();
   }
 
   public void draw() {
@@ -34,6 +31,7 @@ public class ProjectorScreen extends PApplet {
 
   public void setImage(PImage img) {
     displayedImage = img;
+    redraw();
   }
 
   public void setProject(boolean bool) {

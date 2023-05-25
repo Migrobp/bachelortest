@@ -7,7 +7,8 @@ public class ButtonClass {
   private int buttonRadius;
   private int buttonFunction;
   private color buttonColor;
-  private boolean click;
+  private boolean state = false;
+  private boolean buttonPressed = false;
 
   public ButtonClass(int posX, int posY, int buttonWidth, int buttonHeight, String buttonText, int buttonRadius, int buttonFunction, color buttonColor) {
     this.posX = posX;
@@ -18,7 +19,6 @@ public class ButtonClass {
     this.buttonRadius = buttonRadius;
     this.buttonFunction = buttonFunction;
     this.buttonColor = buttonColor;
-    this.click = false;
   }
 
   public void create() {
@@ -34,17 +34,21 @@ public class ButtonClass {
 
   public boolean isPressed() {
     if (mousePressed && mouseX > (posX - (buttonWidth/2)) && mouseX < (posX + (buttonWidth/2)) && mouseY > (posY - (buttonHeight/2)) && mouseY < (posY + (buttonHeight/2))) {
-      this.buttonColor = color(32, 54,120);
       return true;
     } else {
       return false;
     }
   }
-  
+
   public void changeName(String newName) {
     buttonText = newName;
   }
-  
+
   public void changeColor(color c) {
+    this.buttonColor = c;
+  }
+
+  public boolean getState() {
+    return state;
   }
 }

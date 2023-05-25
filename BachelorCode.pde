@@ -40,6 +40,7 @@ boolean startUp = true;
 String showPreview = "no";
 boolean hasRun = false;
 boolean UVOnce = false;
+boolean previewWaitForDraw = false;
 
 int projectionSpeed = 20;
 
@@ -62,7 +63,7 @@ Button projectButton;
 
 color crimson, white, grey, colorForButton, backgroundColor, buttonPressedColor, listBackgroundColor, listLineColor, listTextColor;
 PFont f1;
-PImage img, previewImg, projectionImg, projectedImage;
+PImage img, previewImg, projectionImg, projectedImage, selectedImage, imgShownOnProjector;
 String selectedImg, fileName;
 
 
@@ -134,6 +135,11 @@ void draw() {
       previewButton.create();
 
       if (fileName != null) {
+        if (previewWaitForDraw) {
+          createPreviewImage();
+          previewWaitForDraw = false;
+        }
+
         if (selectButton.isPressed() && isReleased) {
           println("SELECT");
           isReleased = false;
@@ -146,14 +152,14 @@ void draw() {
         if (previewButton.isPressed() && isReleased) {
           println("Preview");
           isReleased = false;
-          //updateBackground();
-          fill(backgroundColor);
-          rect(0, 0, 580, 348);
-          textSize(128);
+          fill(white);
+          textSize(30);
           textAlign(CENTER, CENTER);
-          text("GENERATING PREVIEW", 310, 194);
-          createPreviewImage();
+          text("GENERATING PREVIEW IMAGE", 580/2, 348/2);
+          previewWaitForDraw = true;
         }
+
+
         if (!isOnRaspBerry) {
           switch(showPreview) {
           case "yes":
@@ -186,8 +192,10 @@ void draw() {
             int newImageHeight = (int)(img.height/resizeHeight);
             img.resize(newImageWidth, newImageHeight);
           }
-          imageMode(CENTER);
-          image(img, 310, 194);
+          if (!previewWaitForDraw) {
+            imageMode(CENTER);
+            image(img, 310, 194);
+          }
           if (state == 4) {
             updateBackground();
           }
@@ -204,17 +212,30 @@ void draw() {
       textAlign(CENTER);
       if (hasRun) {
         updateBackground();
-        text("Estimated Time: ", width-20-(160/2), height/3*1 - 20);
-        text(str(pictureDuration) + " Seconds", width-20-(160/2), height/3*1 + 20);
+        text("Projection Time: ", width-20-(160/2), height/4*2 - 15);
+        text(str(pictureDuration) + " Seconds", width-20-(160/2), height/4*2 + 15);
       } else {
-        text("Calculating estimated time", width-20-(160/2), height/3*1 - 20);
+        text("Calculating estimated time", width-20-(160/2), height/3*2 - 15);
       }
-      if(loadImage("previewObjects/" + fileName) == null) {
+      text("UV Light Time: ", width-100, height/4*1 - 15);
+      text(uvLightTime + " Seconds", width-20-(160/2), height/4*1 + 15);
+      text("Total: ", width-100, height/4*3 - 15);
+      text((uvLightTime + pictureDuration) + " Seconds", width-20-(160/2), height/4*3 + 15);
+
+      if (loadImage("previewObjects/" + fileName) == null) {
         createPreviewImage();
       }
+      if (isOnRaspBerry) {
+        imgShownOnProjector = loadImage("/media/hello/MAGNUS/" + fileName);
+      } else {
+        imgShownOnProjector = loadImage("projectorObjects/" + fileName);
+      }
       img = loadImage("previewObjects/" + fileName);
+      selectedImage = loadImage("previewObjects/" + fileName);
+      selectedImage.resize(imgShownOnProjector.width, imgShownOnProjector.height);
+      projectorScreen.setProject(true);
+      projectorScreen.setImage(selectedImage);
       imageMode(CENTER);
-      //img.resize(img.width/4*3, img.height/4*3);
       image(img, 310, 194);
 
       ButtonClass projectButton = new ButtonClass(600/3*2 + 20 - 20, height - 60, 180, 60, "PROJECT", 5, 5, colorForButton);
@@ -222,11 +243,18 @@ void draw() {
       projectButton.create();
       backButton.create();
 
+      if (!hasRun) {
+        thread("confirmProjection");
+        hasRun = true;
+      }
+
       if (projectButton.isPressed() && isReleased) {
         isReleased = false;
         // Start UV LIGHT
         state = 5;
         UVOnce = true;
+        projectorScreen.setImage(null);
+        projectorScreen.setProject(false);
         updateBackground();
         println("Project");
       }
@@ -235,13 +263,10 @@ void draw() {
         println("Back");
         UVLightON = false;
         isFinished = true;
+        hasRun = false;
         state = 1;
         updateBackground();
-      }
-
-      if (!hasRun) {
-        confirmProjection();
-        hasRun = true;
+        projectorScreen.setProject(false);
       }
     }
   }
@@ -267,11 +292,10 @@ void draw() {
       text("Time Left: ", width-20-(160/2), height/3*2 - 20);
       textSize(30);
       text(str(pictureDuration - time), width-20-(160/2), height/3*2 + 20);
-      if (true) {
-        if (UVOnce) {
-          thread("uvLight");
-        }
+      if (UVOnce) {
+        thread("uvLight");
       }
+
       if (cancelButton.isPressed() && isReleased) {
         isReleased = false;
         println("Cancel");

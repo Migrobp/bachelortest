@@ -10,17 +10,17 @@ public class Opt {
   float[] green = new float[3];
   float[] blue = new float[3];
 
-  int cyan_with_red = 650;
-  int cyan_with_green = 1500;
-  int cyan_with_blue = 600;
+  int cyan_with_red = 758;
+  int cyan_with_green = 717;
+  int cyan_with_blue = 10000;
 
-  int magenta_with_red = 1800;
-  int magenta_with_green = 600;
-  int magenta_with_blue = 380;
+  int magenta_with_red = 1046;
+  int magenta_with_green = 483;
+  int magenta_with_blue = 10000;
 
   int yellow_with_red = 10000;
-  int yellow_with_green = 500;
-  int yellow_with_blue = 35;
+  int yellow_with_green = 536;
+  int yellow_with_blue = 32;
 
   Point3D t, t_old;
 
