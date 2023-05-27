@@ -27,7 +27,7 @@ maxYellowRed = [];
 maxYellowGreen = [];
 maxYellowBlue = [];
 
-color = "blue";
+color = "red";
 
 divideIntoRGB("cyan", color, 16);
 divideIntoRGB("magenta", color, 16);
@@ -208,15 +208,18 @@ plotValues();
         plot(normalizeArray(yellowArray, "yellow", color), "-o", "MarkerIndices", 1:1:length(yellowArray), "Color", "yellow")
         switch color
             case "red"
-                xticklabels({"0", "", "450", "", "900", "", "1350", "", "1800"});
+                xticklabels({"0", "", "200", "", "400", "", "600", "", "800"});
+                %xticklabels({"0", "", "450", "", "900", "", "1350", "", "1800"});
                 %xticklabels({"0", "", "1500", "", "2100", "", "3150", "", "4200"});
             case "green"
+                xticklabels({"0", "", "125", "", "250", "", "375", "", "500"});
                 %xticklabels({"0", "", "750", "", "1500", "", "2250", "", "3000"});
                 %xticklabels({"0", "", "1000", "", "2000", "", "3000", "", "4000"});
-                xticklabels({"0", "", "375", "", "750", "", "1125", "", "1500"});
+                %xticklabels({"0", "", "375", "", "750", "", "1125", "", "1500"});
             case "blue"
+                xticklabels({"0", "", "18.75", "", "37.5", "", "56.25", "", "75"});
                 %xticklabels({"0", "", "100", "", "200", "", "300", "", "400"});
-                xticklabels({"0", "", "62.5", "", "125", "", "187.5", "", "250"});
+                %xticklabels({"0", "", "62.5", "", "125", "", "187.5", "", "250"});
         end
         title(upper(color));
         legend("Cyan", "Magenta", "Yellow");

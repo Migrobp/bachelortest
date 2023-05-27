@@ -42,6 +42,8 @@ boolean hasRun = false;
 boolean UVOnce = false;
 boolean previewWaitForDraw = false;
 
+boolean mouseIsPressed = false;
+
 int projectionSpeed = 20;
 
 int state; // Which state the program is in
@@ -53,6 +55,13 @@ int uvLightTime = 0;
 int pictureDuration = 0;
 int time = 0;
 int time2 = 0;
+int imgWidthFactor = 1;
+int imgHeightFactor = 1;
+int imgSizeW = 0;
+int imgSizeH = 0;
+
+int imgCenterX = 310;
+int imgCenterY = 194;
 
 float resizeWidth = 1;
 float resizeHeight = 1;
@@ -63,7 +72,7 @@ Button projectButton;
 
 color crimson, white, grey, colorForButton, backgroundColor, buttonPressedColor, listBackgroundColor, listLineColor, listTextColor;
 PFont f1;
-PImage img, previewImg, projectionImg, projectedImage, selectedImage, imgShownOnProjector;
+PImage img, previewImg, projectionImg, projectedImage, selectedImage, imgShownOnProjector, finishedImg;
 String selectedImg, fileName;
 
 
@@ -92,9 +101,8 @@ void setup() {
   }
 
   windowTitle("PIScreen");
-  //fullScreen(P2D);
   size(800, 480);
-  //fullScreen(P2D);
+  //fullScreen(1);
 
 
   cp5 = new ControlP5(this);
@@ -110,7 +118,6 @@ void setup() {
 
   time1 = millis();
   thread("readOptimizedValuesFile");
-  //readPreviewOptimizedValuesFile();
 
   state = 0;
 }
@@ -122,12 +129,15 @@ void draw() {
     loadingScreen();
   }
 
-  if (state == 1) { // STARTUP LOADING SCREEN
+  if (state == 1) { // FIRST SCREEN
     if (startUp) {
       loadFiles();
       startUp = false;
     } else {
       updateBackground();
+      fill(0);
+      rectMode(CENTER);
+      rect(310, 194, 600, 346);
       cp5.show();
       ButtonClass selectButton = new ButtonClass(600/3*2 + 20, height - 60, 180, 60, "SELECT", 5, 5, colorForButton);
       ButtonClass previewButton = new ButtonClass(600/3*1 - 20, height - 60, 180, 60, "PREVIEW", 5, 5, colorForButton);
@@ -143,7 +153,7 @@ void draw() {
         if (selectButton.isPressed() && isReleased) {
           println("SELECT");
           isReleased = false;
-          state = 4;
+          state = 3;
           cp5.hide();
           updateBackground();
           pictureDuration = 0;
@@ -180,11 +190,11 @@ void draw() {
           }
         }
         if (img != null) {
-          if (img.width > 580 && img.height > 348) {
+          if (img.width > 580 && img.height > 326) {
             float imgW = img.width;
             float imgH = img.height;
             resizeWidth = imgW/580;
-            resizeHeight = imgH/348;
+            resizeHeight = imgH/326;
             int newImageWidth = (int)(img.width/resizeWidth);
             if (img.width == img.height) {
               newImageWidth = (int)(img.width/resizeHeight);
@@ -196,7 +206,7 @@ void draw() {
             imageMode(CENTER);
             image(img, 310, 194);
           }
-          if (state == 4) {
+          if (state == 3) {
             updateBackground();
           }
         }
@@ -204,23 +214,20 @@ void draw() {
     }
   }
 
-  if (state == 4) {
+
+  if (state == 3) {
     if (fileName != null) {
-      getLidarData();
-      textSize(20);
-      fill(0);
-      textAlign(CENTER);
-      if (hasRun) {
-        updateBackground();
-        text("Projection Time: ", width-20-(160/2), height/4*2 - 15);
-        text(str(pictureDuration) + " Seconds", width-20-(160/2), height/4*2 + 15);
-      } else {
-        text("Calculating estimated time", width-20-(160/2), height/3*2 - 15);
+      if (imgWidthFactor == 1 && imgHeightFactor == 1) {
+        imgWidthFactor = img.width;
+        imgHeightFactor = img.height;
+        imgSizeW = img.width;
+        imgSizeH = img.height;
+        println(imgWidthFactor);
       }
-      text("UV Light Time: ", width-100, height/4*1 - 15);
-      text(uvLightTime + " Seconds", width-20-(160/2), height/4*1 + 15);
-      text("Total: ", width-100, height/4*3 - 15);
-      text((uvLightTime + pictureDuration) + " Seconds", width-20-(160/2), height/4*3 + 15);
+
+      fill(0);
+      rectMode(CENTER);
+      rect(310, 194, 600, 346);
 
       if (loadImage("previewObjects/" + fileName) == null) {
         createPreviewImage();
@@ -236,28 +243,28 @@ void draw() {
       projectorScreen.setProject(true);
       projectorScreen.setImage(selectedImage);
       imageMode(CENTER);
-      image(img, 310, 194);
+      img.resize(imgWidthFactor, imgHeightFactor);
+      image(img, imgCenterX, imgCenterY);
 
-      ButtonClass projectButton = new ButtonClass(600/3*2 + 20 - 20, height - 60, 180, 60, "PROJECT", 5, 5, colorForButton);
       ButtonClass backButton = new ButtonClass(600/3*1 - 20, height - 60, 180, 60, "BACK", 5, 5, colorForButton);
-      projectButton.create();
       backButton.create();
 
-      if (!hasRun) {
-        thread("confirmProjection");
-        hasRun = true;
-      }
+      resizeAndMoveImg();
+
+      ButtonClass projectButton = new ButtonClass(600/3*2 + 20 - 20, height - 60, 180, 60, "PROJECT", 5, 5, colorForButton);
+      projectButton.create();
 
       if (projectButton.isPressed() && isReleased) {
+        if (!hasRun) {
+          thread("confirmProjection");
+          hasRun = true;
+        }
         isReleased = false;
-        // Start UV LIGHT
-        state = 5;
-        UVOnce = true;
-        projectorScreen.setImage(null);
-        projectorScreen.setProject(false);
         updateBackground();
         println("Project");
+        state = 4;
       }
+
       if (backButton.isPressed() && isReleased) {
         isReleased = false;
         println("Back");
@@ -271,12 +278,107 @@ void draw() {
     }
   }
 
+
+  if (state == 4) {
+    if (fileName != null) {
+      textSize(20);
+      fill(0);
+      textAlign(CENTER);
+      if (hasRun) {
+        updateBackground();
+        text("Projection Time: ", width-20-(160/2), height/4*2 - 15);
+        text(str(pictureDuration) + " Seconds", width-20-(160/2), height/4*2 + 15);
+      } else {
+        text("Calculating estimated time", width-20-(160/2), height/4*4 - 15);
+      }
+      text("UV Light Time: ", width-100, height/4*1 - 15);
+      text(uvLightTime + " Seconds", width-20-(160/2), height/4*1 + 15);
+      text("Total: ", width-100, height/4*3 - 15);
+      text((uvLightTime + pictureDuration) + " Seconds", width-20-(160/2), height/4*3 + 15);
+
+      if (imgWidthFactor == 1 && imgHeightFactor == 1) {
+        imgWidthFactor = img.width;
+        imgHeightFactor = img.height;
+        imgSizeW = img.width;
+        imgSizeH = img.height;
+        println(imgWidthFactor);
+      }
+
+      fill(0);
+      rectMode(CENTER);
+      rect(310, 194, 600, 346);
+
+      if (loadImage("previewObjects/" + fileName) == null) {
+        createPreviewImage();
+      }
+      if (isOnRaspBerry) {
+        imgShownOnProjector = loadImage("/media/hello/MAGNUS/" + fileName);
+      } else {
+        imgShownOnProjector = loadImage("projectorObjects/" + fileName);
+      }
+      img = loadImage("previewObjects/" + fileName);
+      selectedImage = loadImage("previewObjects/" + fileName);
+      selectedImage.resize(imgShownOnProjector.width, imgShownOnProjector.height);
+      projectorScreen.setProject(true);
+      projectorScreen.setImage(selectedImage);
+      imageMode(CENTER);
+      img.resize(imgWidthFactor, imgHeightFactor);
+      image(img, imgCenterX, imgCenterY);
+
+      ButtonClass backButton = new ButtonClass(600/3*1 - 20, height - 60, 180, 60, "BACK", 5, 5, colorForButton);
+      backButton.create();
+      if (hasRun) {
+        ButtonClass startButton = new ButtonClass(600/3*2 + 20 - 20, height - 60, 180, 60, "START", 5, 5, colorForButton);
+        startButton.create();
+        if (startButton.isPressed() && isReleased) {
+          isReleased = false;
+          // Start UV LIGHT
+          state = 5;
+          UVOnce = true;
+          projectorScreen.setImage(null);
+          projectorScreen.setProject(false);
+          updateBackground();
+          println("Start");
+        }
+      } else {
+        ButtonClass projectButton = new ButtonClass(600/3*2 + 20 - 20, height - 60, 180, 60, "PROJECT", 5, 5, colorForButton);
+        projectButton.create();
+        if (projectButton.isPressed() && isReleased) {
+          if (!hasRun) {
+            thread("confirmProjection");
+            hasRun = true;
+          }
+          isReleased = false;
+          updateBackground();
+          println("Project");
+        }
+      }
+
+      if (backButton.isPressed() && isReleased) {
+        isReleased = false;
+        println("Back");
+        UVLightON = false;
+        isFinished = true;
+        hasRun = false;
+        state = 1;
+        updateBackground();
+        projectorScreen.setProject(false);
+      }
+    }
+  }
+
+
+
   // PROJECTION IN ACTION
   if (state == 5) {
     if (fileName != null) {
-      img = loadImage("previewObjects/" + fileName);
+      fill(0);
+      rectMode(CENTER);
+      rect(310, 194, 600, 346);
+      finishedImg = loadImage("previewObjects/" + fileName);
       imageMode(CENTER);
-      image(img, 310, 194);
+      PImage smallerPic = returnResized(finishedImg);
+      image(smallerPic, 310, 194);
       ButtonClass cancelButton = new ButtonClass(600/2, height - 60, 360, 60, "CANCEL", 5, 5, colorForButton);
       cancelButton.create();
       textSize(20);
@@ -284,16 +386,17 @@ void draw() {
       textAlign(CENTER);
       text("UV Time Left: ", width-20-(160/2), height/3*1 - 20);
       textSize(30);
-      text(str(uvLightTime - time2), width-20-(160/2), height/3*1 + 20);
+      text((uvLightTime - time2), width-20-(160/2), height/3*1 + 20);
 
       textSize(20);
       fill(0);
       textAlign(CENTER);
       text("Time Left: ", width-20-(160/2), height/3*2 - 20);
       textSize(30);
-      text(str(pictureDuration - time), width-20-(160/2), height/3*2 + 20);
+      text((pictureDuration - time), width-20-(160/2), height/3*2 + 20);
       if (UVOnce) {
         thread("uvLight");
+        UVOnce = false;
       }
 
       if (cancelButton.isPressed() && isReleased) {
@@ -316,6 +419,7 @@ void runOnce() {
 
 void mouseReleased() {
   isReleased = true;
+  mouseIsPressed = false;
 }
 
 void readOptimizedValuesFile() {
@@ -360,6 +464,63 @@ void readOptimizedValuesFile() {
     e.printStackTrace();
   }
 }
+
+
+public void resizeAndMoveImg() {
+  ButtonClass plusButton = new ButtonClass(width-20-(160/2), height/3*1, 100, 100, "+", 5, 5, colorForButton);
+  ButtonClass minusButton = new ButtonClass(width-20-(160/2), height/3*2, 100, 100, "-", 5, 5, colorForButton);
+  plusButton.create();
+  minusButton.create();
+
+  if (plusButton.isPressed() && isReleased) {
+    isReleased = false;
+    //projectorScreen.makeBigger();
+    if (img.width < ((imgSizeW*110)/100) && img.height < ((imgSizeH*110)/100)) {
+      imgWidthFactor = (imgWidthFactor*110)/100;
+      imgHeightFactor = (imgHeightFactor*110)/100;
+    }
+    projectorScreen.setImgFactor(imgWidthFactor, imgHeightFactor);
+  }
+
+  if (minusButton.isPressed() && isReleased) {
+    isReleased = false;
+    //projectorScreen.makeSmaller();
+    //if ((imgWidthFactor/110)*100 > 0 && (imgHeightFactor/110)*100 > 0) {
+    imgWidthFactor = (imgWidthFactor/110)*100;
+    imgHeightFactor = (imgHeightFactor/110)*100;
+    //}
+    projectorScreen.setImgFactor(imgWidthFactor, imgHeightFactor);
+  }
+
+
+  if (mousePressed && mouseX > (310 - (580/2)) && mouseX < (310 + (580/2)) && mouseY > (194 - (326/2)) && mouseY < (194 + (326/2))) {
+    if (mouseX - img.width/2 > (310 - (580/2)) && mouseX + img.width/2 < (310 + (580/2)) && mouseY - img.height/2 > (194 - (326/2)) && mouseY + img.height/2 < (194 + (326/2))) {
+      imgCenterX = mouseX;
+      imgCenterY = mouseY;
+      projectorScreen.setXY(imgCenterX, imgCenterY);
+    }
+  }
+}
+
+public PImage returnResized(PImage image) {
+  if (image != null) {
+    if (image.width > 580 && image.height > 326) {
+      float imgW = image.width;
+      float imgH = image.height;
+      resizeWidth = imgW/580;
+      resizeHeight = imgH/326;
+      int newImageWidth = (int)(image.width/resizeWidth);
+      if (image.width == image.height) {
+        newImageWidth = (int)(image.width/resizeHeight);
+      }
+      int newImageHeight = (int)(image.height/resizeHeight);
+      image.resize(newImageWidth, newImageHeight);
+    }
+    return image;
+  }
+  return null;
+}
+
 
 public void updateBackground() {
   background(backgroundColor);

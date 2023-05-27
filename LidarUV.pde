@@ -14,6 +14,7 @@ public void getLidarData() {
           int high = recv[3] & 0xff;
           int distance = low + high * 256;
           lidarDistance = distance;
+          uvLightTime = lidarDistance * 60;
         }
       }
     }
@@ -25,31 +26,34 @@ public void getLidarData() {
 public void uvLight() {
   // Check whether we are on raspberry pi to ensure GPIO pins.
   // If on raspberry turn on UV light and set timer to stop after timeActive, then turn UV off again.
-  if (true) {
-    int uvLightTime = lidarDistance * 60;
-    int updateTime = 1000 * uvLightTime;
-    int oneSecond = 1000;
-    int savedTime = 0;
-    if (!UVLightON) {
-      UVLightON = true;
-      GPIO.digitalWrite(4, GPIO.HIGH);
-      savedTime = millis();
-    }
-    while (UVLightON) {
-      int timePassed = (millis() - savedTime);
-      if (timePassed > updateTime) {
-        UVLightON = false;
-        GPIO.digitalWrite(4, GPIO.LOW);
+  int updateTime = uvLightTime;
+  int oneSecond = 1000;
+  int savedTime = 0;
+  if (!UVLightON) {
+    UVLightON = true;
+    GPIO.digitalWrite(4, GPIO.HIGH);
+    savedTime = millis();
+  }
+  while(UVLightON) {
+    int timePassed = (millis() - savedTime);
+    if (timePassed >= oneSecond) {
+      savedTime += oneSecond;
+    } else {
+      long sleepTime = oneSecond - timePassed;
+      //println(sleepTime);
+      try {
+        Thread.sleep(sleepTime);
       }
-      if (timePassed > oneSecond) {
-        savedTime = millis();
-        time2++;
-        updateBackground();
+      catch(InterruptedException e) {
+        println("Got interrupted!");
       }
     }
-    if (!UVLightON && UVOnce) {
-      println("HELLO");
-      UVOnce = false;
+    savedTime = millis();
+    time2++;
+    updateBackground();
+    if (time2 >= updateTime) {
+      UVLightON = false;
+      GPIO.digitalWrite(4, GPIO.LOW);
       thread("projection");
     }
   }

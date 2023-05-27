@@ -157,6 +157,8 @@ class SilderList extends Controller<SilderList> {
       }
       showPreview = "no";
     }
+    imgWidthFactor = 1;
+    imgHeightFactor = 1;
     updateMenu = true;
   }
 
