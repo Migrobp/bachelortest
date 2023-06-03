@@ -5,37 +5,32 @@ public void confirmProjection() {
   } else {
     projectionImg = loadImage("projectorObjects/" + fileName);
   }
-  if (projectionImg.width > 1280) {
-    float imgW = projectionImg.width;
-    resizeWidth = imgW/1280;
-  } else {
-    resizeWidth = 1;
-  }
-  if (projectionImg.height > 720) {
-    float imgH = projectionImg.height;
-    resizeHeight = imgH/720;
-  } else {
-    resizeHeight = 1;
-  }
+
+  //projectionImg = returnResized(projectionImg, 1280, 720);
   projectionImg.loadPixels();
-  int newImageWidth = (int)(projectionImg.width/resizeWidth);
-  int newImageHeight = (int)(projectionImg.height/resizeHeight);
-  projectionImg.resize(newImageWidth, newImageHeight);
-  projectionImg.resize(1280/580*imgWidthFactor, 720/326*imgHeightFactor);
-  projectedImage = createImage(1280/580*imgWidthFactor, 720/326*imgHeightFactor, RGB);
+  projectionImg = returnResized(projectionImg, 1280, 720);
+  projectionImg.resize(projectionImg.width/100*imgWidthFactor, projectionImg.height/100*imgHeightFactor);
+  projectedImage = createImage(projectionImg.width, projectionImg.height, RGB);
   projectedImage.loadPixels();
 
   getLidarData();
-  println(lidarDistance);  
-  pictureTimesArray = new ArrayList<ArrayList<Integer>>();
-  for (int i = 0; i <= highestTime; i++) {
-    pictureTimesArray.add(new ArrayList<Integer>());
-  }
 
+  pictureTimesArray = new ArrayList<ArrayList<Integer>>();
+  if (isOnRaspBerry) {
+    double maxTime = Math.pow(lidarDistance/10.0, 2) * highestTime;
+    for (double i = 0; i <= maxTime; i++) {
+      pictureTimesArray.add(new ArrayList<Integer>());
+    }
+  } else {
+    for (int i = 0; i <= highestTime; i++) {
+      pictureTimesArray.add(new ArrayList<Integer>());
+    }
+  }
   for (int i = 0; i < projectionImg.pixels.length; i++) {
-    int r = (int)red(projectionImg.pixels[i]);
-    int g = (int)green(projectionImg.pixels[i]);
-    int b = (int)blue(projectionImg.pixels[i]);
+    color pixelColor = projectionImg.pixels[i];
+    int r = (int)red(pixelColor);
+    int g = (int)green(pixelColor);
+    int b = (int)blue(pixelColor);
     int redTime = 0;
     int greenTime = 0;
     int blueTime = 0;
@@ -53,6 +48,14 @@ public void confirmProjection() {
       blueTime = pixel.getBlue();
     }
 
+    if (isOnRaspBerry) {
+      double multiplyer = Math.pow(lidarDistance/10.0, 2);
+      redTime = (int)(multiplyer * redTime);
+      greenTime = (int)(multiplyer * greenTime);
+      blueTime = (int)(multiplyer * blueTime);
+    }
+
+
     pictureDuration = (redTime > pictureDuration ? redTime:pictureDuration);
     pictureDuration = (greenTime > pictureDuration ? greenTime:pictureDuration);
     pictureDuration = (blueTime > pictureDuration ? blueTime:pictureDuration);
@@ -61,11 +64,14 @@ public void confirmProjection() {
     pictureTimesArray.get(greenTime).add(i);
     pictureTimesArray.get(blueTime).add(i);
 
-    
-    //r = (r != 0 ? 255:0);
-    //g = (r != 0 ? 255:0);
-    //b = (r != 0 ? 255:0);
+    r = (r != 0 ? 255:0);
+    g = (g != 0 ? 255:0);
+    b = (b != 0 ? 255:0);
 
-    //projectedImage.pixels[i] = color(r, g, b);
+    projectedImage.pixels[i] = color(255, 255, 255);
   }
+
+  hasRun = true;
+  updateBackground();
+  isNew = true;
 }

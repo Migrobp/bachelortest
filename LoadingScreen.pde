@@ -14,5 +14,6 @@ public void loadingScreen() {
   } else if (loadingBarProgress == 390) {
     updateBackground();
     state = 1;
+    isNew = true;
   }
 }

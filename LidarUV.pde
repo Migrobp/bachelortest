@@ -13,8 +13,9 @@ public void getLidarData() {
           int low = recv[2] & 0xff;
           int high = recv[3] & 0xff;
           int distance = low + high * 256;
-          lidarDistance = distance;
-          uvLightTime = lidarDistance * 60;
+          lidarDistance = distance + 3;
+          uvLightTime = 600 + ((int)lidarDistance * 60)/10;
+          println("Distance: " + lidarDistance);
         }
       }
     }
@@ -29,6 +30,7 @@ public void uvLight() {
   int updateTime = uvLightTime;
   int oneSecond = 1000;
   int savedTime = 0;
+  projectorScreen.setProject(false);
   if (!UVLightON) {
     UVLightON = true;
     GPIO.digitalWrite(4, GPIO.HIGH);
@@ -51,6 +53,7 @@ public void uvLight() {
     savedTime = millis();
     time2++;
     updateBackground();
+    isNew = true;
     if (time2 >= updateTime) {
       UVLightON = false;
       GPIO.digitalWrite(4, GPIO.LOW);

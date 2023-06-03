@@ -99,6 +99,7 @@ class SilderList extends Controller<SilderList> {
     // List color !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     menu.background(listBackgroundColor);
     menu.textFont(cp5.getFont().getFont());
+    menu.textSize(12);
     menu.pushMatrix();
     menu.translate( 0, int(pos) );
     menu.pushMatrix();
@@ -130,10 +131,10 @@ class SilderList extends Controller<SilderList> {
   // if yes, scroll to that position, otherwise do whatever this item of
   // the list is supposed to do.
   public void onClick() {
-    if (getPointer().x()>getWidth()-10) {
-      npos= -map(getPointer().y(), 0, getHeight(), 0, items.size()*itemHeight);
-      updateMenu = true;
-    }
+    //if (getPointer().x()>getWidth()-10) {
+    //  npos= -map(getPointer().y(), 0, getHeight(), 0, items.size()*itemHeight);
+    //  updateMenu = true;
+    //}
   }
 
   public void onPress() {
@@ -157,8 +158,8 @@ class SilderList extends Controller<SilderList> {
       }
       showPreview = "no";
     }
-    imgWidthFactor = 1;
-    imgHeightFactor = 1;
+    imgWidthFactor = 100;
+    imgHeightFactor = 100;
     updateMenu = true;
   }
 

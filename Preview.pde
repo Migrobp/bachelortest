@@ -55,8 +55,9 @@ public void createPreviewImage() {
 
       previewImg.pixels[i] = color(r, g, b);
     }
-    previewImg.save("PreviewObjects/" + selectedImg);
+    previewImg.save("previewObjects/" + selectedImg);
     println("Preview Made!");
     showPreview = "yes";
+    isNew = true;
   }
 }

@@ -1,4 +1,4 @@
-public void projection() {
+public void projection() { //<>//
   println("Project Happening");
   isFinished = false;
   int updateTime = 1000/projectionSpeed;
@@ -7,9 +7,6 @@ public void projection() {
   while (!isFinished) {
     int timePassed = (millis() - savedTime);
     for (int p = 0; p < pictureTimesArray.get(time).size(); p++) {
-      //int newRedColor = 0;
-      //int newGreenColor = 0;
-      //int newBlueColor = 0;
       int redColor = (int)red(projectionImg.pixels[pictureTimesArray.get(time).get(p)]);
       int greenColor = (int)green(projectionImg.pixels[pictureTimesArray.get(time).get(p)]);
       int blueColor = (int)blue(projectionImg.pixels[pictureTimesArray.get(time).get(p)]);
@@ -17,6 +14,7 @@ public void projection() {
       int pixelRedTime = 0;
       int pixelGreenTime = 0;
       int pixelBlueTime = 0;
+
 
       if (redColor < 128) {
         OptimizedTimes pixel = optValues1.get(redColor + "," + greenColor + "," + blueColor);
@@ -36,7 +34,6 @@ public void projection() {
       int newBlueColor = (time >= pixelBlueTime ? 0:255);
 
       projectedImage.pixels[pictureTimesArray.get(time).get(p)] = color(newRedColor, newGreenColor, newBlueColor);
-
     }
     if (timePassed >= updateTime) {
       savedTime += updateTime;
@@ -53,16 +50,20 @@ public void projection() {
     projectedImage.updatePixels();
     savedTime = millis();
     projectorScreen.setProject(true);
+    projectorScreen.setActive(true);
     projectorScreen.setImage(projectedImage);
     updateBackground();
     time++;
+    isNew = true;
 
     if (time >= pictureDuration) {
       projectorScreen.setProject(false);
+      projectorScreen.setActive(false);
       isFinished = true;
       state = 1;
       showPreview = "no";
       updateBackground();
+      isNew = true;
     }
   }
 }
